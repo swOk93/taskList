@@ -1,23 +1,38 @@
 package tasklist
 import kotlinx.datetime.*
+import java.time.format.DateTimeParseException
 
-fun checkDateTime(): Boolean {
-
+fun checkDateTime(date: String): Boolean {
+    return try {
+        val check = Instant.parse(date)
+        true
+    }
+    catch (e: IllegalArgumentException) {
+//        println("$ is not a leap year")
+        false
+    }
 }
 object TaskList {
     private val taskList = mutableListOf<MutableList<String>>()
     fun add() {
         val task = mutableListOf<String>()
         var priority = ""
-        var date: String
-        var time: String
+        var date = ""
+        var time = ""
         while (priority.isEmpty()) {
             println("Input the task priority (C, H, N, L):")
             readln().uppercase().let { if ((it == "C") or (it == "H") or (it == "N") or (it == "L")) priority = it }
         }
         println("Input the date (yyyy-mm-dd):")
-        while (checkDateTime())
-        println("Input the time (hh:mm):")
+        while (date.isEmpty()) {
+            println("Input the date (yyyy-mm-dd):")
+            readln().let { if (checkDateTime(it + "T00:00Z")) date = it else println("The input time is invalid") }
+        }
+        while (time.isEmpty()) {
+            println("Input the time (hh:mm):")
+            readln().let { if (checkDateTime(date + "T" + it + "Z")) time = it else println("The input time is invalid") }
+        }
+        task.add(date + time + priority)
         println("Input a new task (enter a blank line to end):")
         while (true) {
             readln().trim().also { if (it == "") {
