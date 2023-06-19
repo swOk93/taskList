@@ -12,6 +12,14 @@ object TaskList {
             println("Input the task priority (C, H, N, L):")
             readln().uppercase().let { if ((it == "C") or (it == "H") or (it == "N") or (it == "L")) priority = it }
         }
+        fun priority(): String {
+            var str = ""
+            while (str.isEmpty()) {
+                println("Input the task priority (C, H, N, L):")
+                readln().uppercase().let { if ((it == "C") or (it == "H") or (it == "N") or (it == "L")) str = it }
+            }
+            return str
+        }
         println("Input the date (yyyy-mm-dd):")
         while (date.size != 3) {
             println("Input the date (yyyy-mm-dd):")
@@ -57,7 +65,7 @@ object TaskList {
         }
     }
 
-    fun print() {
+    fun printTaskList() {
         if (taskList.isNotEmpty()) {
             for (x in 0 until taskList.size) {
                 taskList[x][0] = taskList[x][0] + deadline(taskList[x][0].substringBefore(' '))
@@ -76,12 +84,33 @@ object TaskList {
         return if (numberOfDays > 0) "I" else if (numberOfDays < 0) "O" else "T"
     }
 
-    fun delete() {
-        TODO("Not yet implemented")
+    fun change(type: String) {
+        if (taskList.isNotEmpty()) {
+            var loop = true
+            while (loop) {
+                println("Input the task number (1-${taskList.size+1}):")
+                readln().toInt().let { if (it in 1 until taskList.size+1) {
+                    if (type == "delete") {
+                        taskList.removeAt(it).also { println("The task is deleted") }.also { loop = false }
+                    } else edit(it).also { loop = false }
+                } else println("Invalid task number") }
+            }
+        }
+        printTaskList()
     }
 
-    fun edit() {
-        TODO("Not yet implemented")
+    fun edit(num: Int) {
+        var loop = true
+        while (loop) {
+            println("Input a field to edit (priority, date, time, task):")
+            when (readln().lowercase()) {
+                "priority" -> taskList[num][0] = "${taskList[num][0]} ${taskList[num][1]} ${}"
+                "date" -> TODO()
+                "time" -> TODO()
+                "task" -> TODO()
+                else -> println("Invalid field")
+            }
+        }
     }
 
 }
@@ -91,13 +120,11 @@ fun main() {
         println("Input an action (add, print, edit, delete, end):")
         when (readln().lowercase()) {
             "add" -> TaskList.add()
-            "print" -> TaskList.print()
-            "delete" -> TaskList.delete()
-            "edit" -> TaskList.edit()
+            "print" -> TaskList.printTaskList()
+            "delete" -> TaskList.change("delete")
+            "edit" -> TaskList.change("edit")
             "end" -> print("Tasklist exiting!").also { return }
             else -> println("The input action is invalid")
         }
     }
 }
-
-
