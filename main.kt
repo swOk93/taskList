@@ -98,7 +98,8 @@ object TaskList {
             var loop = true
             while (loop) {
                 println("Input the task number (1-${taskList.size}):")
-                readln().toInt().let { if (it in 1..taskList.size) {
+                val num = readln().let { if (Regex("^\\d{1,4}$").mathes(it)) it.toInt() else 0 }
+                num.let { if (it in 1..taskList.size) {
                     if (type == "delete") {
                         taskList.removeAt(it-1).also { println("The task is deleted") }.also { loop = false }
                     } else edit(it).also { loop = false }
