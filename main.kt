@@ -76,8 +76,8 @@ object TaskList {
     fun printTaskList() {
         if (taskList.isNotEmpty()) {
             for (x in 0 until taskList.size) {
-                taskList[x][0] = taskList[x][0] + " " + deadline(taskList[x][0].substringBefore(' '))
-                for (y in 0 until taskList[x].size) {
+                println((x+1).toString().padEnd(3) + taskList[x][0] + " " + deadline(taskList[x][0].substringBefore(' ')))
+                for (y in 1 until taskList[x].size) {
                     println((if (y == 0) (x+1).toString().padEnd(3) else "") + taskList[x][y])
                 }
 //                println()
@@ -93,18 +93,18 @@ object TaskList {
     }
 
     fun change(type: String) {
+        printTaskList()
         if (taskList.isNotEmpty()) {
             var loop = true
             while (loop) {
                 println("Input the task number (1-${taskList.size}):")
-                readln().toInt().let { if (it in 1 until taskList.size) {
+                readln().toInt().let { if (it in 1..taskList.size) {
                     if (type == "delete") {
-                        taskList.removeAt(it).also { println("The task is deleted") }.also { loop = false }
+                        taskList.removeAt(it-1).also { println("The task is deleted") }.also { loop = false }
                     } else edit(it).also { loop = false }
                 } else println("Invalid task number") }
             }
         }
-        printTaskList()
     }
 
     private fun edit(num: Int) {
@@ -137,3 +137,5 @@ fun main() {
         }
     }
 }
+
+
