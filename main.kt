@@ -6,9 +6,7 @@ object TaskList {
     fun add() {
         val task = mutableListOf<String>()
         val priority = priority()
-        val date = date()
-        val time = time()
-        task.add("${date[0]}-${format(date[1])}-${format(date[2])} ${format(time[0])}:${format(time[1])} $priority")
+        task.add("${date()} ${time()} $priority")
         task.add(newTask())
         taskList.add(task)
     }
@@ -19,7 +17,8 @@ object TaskList {
             readln().trim().also { if (it == "") {
                 if (str.isEmpty()) println("The task is blank").also { return str }
                 else return str
-            } else str = str + "   $it\n" }
+            } else str += "   $it\n"
+            }
         }
     }
     private fun priority(): String {
@@ -30,7 +29,7 @@ object TaskList {
         }
         return str
     }
-    private fun date(): List<Int> {
+    private fun date(): String {
         var list = listOf<Int>()
         while (list.size != 3) {
             println("Input the date (yyyy-mm-dd):")
@@ -42,9 +41,9 @@ object TaskList {
             if (list.size == 3 && checkDateTime(list[0], list[1], list[2])) {
             } else list = listOf<Int>().also { println("The input date is invalid") }
         }
-        return list
+        return "${list[0]}-${format(list[1])}-${format(list[2])}"
     }
-    private fun time(): List<Int> {
+    private fun time(): String {
         var list = listOf<Int>()
         while (list.size != 2) {
             println("Input the time (hh:mm):")
@@ -56,11 +55,11 @@ object TaskList {
             if (list.size == 2 && checkDateTime(2000, 1, 1, list[0], list[1])) {
             } else list = listOf<Int>().also { println("The input time is invalid") }
         }
-        return list
+        return "${format(list[0])}:${format(list[1])}"
     }
     private fun format(n: Int): String {
         var str = n.toString()
-        if (str.length < 2) str = "0" + str
+        if (str.length < 2) str = "0$str"
         return str
     }
     private fun checkDateTime(years: Int = 2000, months: Int = 1, days: Int = 1, hours: Int = 0, minutes: Int = 0): Boolean {
@@ -78,7 +77,7 @@ object TaskList {
             for (x in 0 until taskList.size) {
                 println((x+1).toString().padEnd(3) + taskList[x][0] + " " + deadline(taskList[x][0].substringBefore(' ')))
                 for (y in 1 until taskList[x].size) {
-                    println((if (y == 0) (x+1).toString().padEnd(3) else "") + taskList[x][y])
+                    println(taskList[x][y])
                 }
 //                println()
             }
@@ -98,11 +97,11 @@ object TaskList {
             var loop = true
             while (loop) {
                 println("Input the task number (1-${taskList.size}):")
-                val num = readln().let { if (Regex("^\\d{1,4}$").mathes(it)) it.toInt() else 0 }
+                val num = readln().let { if (Regex("^\\d{1,4}$").matches(it)) it.toInt() else 0 }
                 num.let { if (it in 1..taskList.size) {
                     if (type == "delete") {
                         taskList.removeAt(it-1).also { println("The task is deleted") }.also { loop = false }
-                    } else edit(it).also { loop = false }
+                    } else edit(it-1).also { loop = false }
                 } else println("Invalid task number") }
             }
         }
@@ -112,10 +111,11 @@ object TaskList {
         var loop = true
         while (loop) {
             println("Input a field to edit (priority, date, time, task):")
+            val (date, time, priority) = taskList[num][0].split(" ")
             when (readln().lowercase()) {
-                "priority" -> taskList[num][0] = "${taskList[num][0]} ${taskList[num][1]} ${priority()}".also { loop = false }
-                "date" -> taskList[num][0] = "${date().let { (a, b, c) -> "$a-$b-$c" }} ${taskList[num][1]} ${taskList[num][2]}".also { loop = false }
-                "time" -> taskList[num][0] = "${taskList[num][0]} ${time().let { (a, b) -> "$a:$b" }}  ${taskList[num][2]}".also { loop = false }
+                "priority" -> taskList[num][0] = "$date $time ${priority()}".also { loop = false }
+                "date" -> taskList[num][0] = "${date()} $time $priority".also { loop = false }
+                "time" -> taskList[num][0] = "$date ${time()} $priority".also { loop = false }
                 "task" -> taskList[num][1] = newTask().also { loop = false }
                 else -> println("Invalid field")
             }
@@ -138,5 +138,3 @@ fun main() {
         }
     }
 }
-
-
