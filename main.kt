@@ -25,7 +25,14 @@ object TaskList {
         var str = ""
         while (str.isEmpty()) {
             println("Input the task priority (C, H, N, L):")
-            readln().uppercase().let { if ((it == "C") or (it == "H") or (it == "N") or (it == "L")) str = it }
+            readln().uppercase().let {
+                when (it) {
+                    "C" -> str = "\u001B[101m \u001B[0m"
+                    "H" -> str = "\u001B[103m \u001B[0m"
+                    "N" -> str = "\u001B[102m \u001B[0m"
+                    "L" -> str = "\u001B[104m \u001B[0m"
+                }
+            }
         }
         return str
     }
@@ -73,21 +80,36 @@ object TaskList {
     }
 
     fun printTaskList() {
+        val sep = "+----+------------+-------+---+---+--------------------------------------------+\n" // separate line
+
         if (taskList.isNotEmpty()) {
+            println(sep + "| N  |    Date    | Time  | P | D |                   Task                     |\n" + sep)
             for (x in 0 until taskList.size) {
-                println((x+1).toString().padEnd(3) + taskList[x][0] + " " + deadline(taskList[x][0].substringBefore(' ')))
-                for (y in 1 until taskList[x].size) {
-                    println(taskList[x][y])
+                val (date, time, priority) = taskList[x][0].split(' ').map { it }
+                println("| " + (x+1).toString().padEnd(3) + "| " + date + " | " + time + " | " +
+                color(priority) + " | " + color(deadline(date)) + " | " ) // without a newline character, because we must continue this
+//                println((x+1).toString().padEnd(3) + taskList[x][0] + " " + deadline(taskList[x][0].substringBefore(' ')))
+                for (y in 1 until taskList[x][1].length / 44) { // each line for 44 symbols
+                    println(taskList[x][2])
                 }
 //                println()
             }
         } else println("No tasks have been input")
     }
+    private fun color(color: String): String {
+        return when (color) {
+            "C", "O" -> "\u001B[101m \u001B[0m" // if priority = "C" or due tag = "O"
+            "H", "T" -> "\u001B[103m \u001B[0m" // if priority = "H" or due tag = "T"
+            "N", "I" -> "\u001B[102m \u001B[0m" // if priority = "N" or due tag = "I"
+            "L" -> "\u001B[104m \u001B[0m" // if priority = "L"
+            else -> "error"
+        }
+    }
 
     private fun deadline(s: String): String {
-        val date = s.split('-').map { it.toInt() }
+        val date = s.split('-').map { it.toInt() } // get year, month and day
         val currentDate = Clock.System.now().toLocalDateTime(TimeZone.of("UTC+0")).date
-        val numberOfDays = currentDate.daysUntil(LocalDate(date[0], date[1], date[2]))
+        val numberOfDays = currentDate.daysUntil(LocalDate(date[0], date[1], date[2])) // get the number of days until our date
         return if (numberOfDays > 0) "I" else if (numberOfDays < 0) "O" else "T"
     }
 
