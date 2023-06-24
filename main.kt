@@ -17,7 +17,16 @@ object TaskList {
             readln().trim().also { if (it == "") {
                 if (str.isEmpty()) println("The task is blank").also { return str }
                 else return str
-            } else str += "   $it\n"
+            } else if (it.length <= 44) {
+                str = it + "\n"
+            } else {
+                var x = 0
+                for (y in 44 until it.length step 44) {
+                    str += it.substring(x, y) + "\n"
+                    x = y
+                }
+                str += it.substring(x, it.length) + "\n"
+            }
             }
         }
     }
@@ -25,14 +34,7 @@ object TaskList {
         var str = ""
         while (str.isEmpty()) {
             println("Input the task priority (C, H, N, L):")
-            readln().uppercase().let {
-                when (it) {
-                    "C" -> str = "\u001B[101m \u001B[0m"
-                    "H" -> str = "\u001B[103m \u001B[0m"
-                    "N" -> str = "\u001B[102m \u001B[0m"
-                    "L" -> str = "\u001B[104m \u001B[0m"
-                }
-            }
+            readln().uppercase().let { if ((it == "C") or (it == "H") or (it == "N") or (it == "L")) str = it }
         }
         return str
     }
@@ -80,19 +82,19 @@ object TaskList {
     }
 
     fun printTaskList() {
-        val sep = "+----+------------+-------+---+---+--------------------------------------------+\n" // separate line
+        val dev = "+----+------------+-------+---+---+--------------------------------------------+\n" // dividing line
 
         if (taskList.isNotEmpty()) {
-            println(sep + "| N  |    Date    | Time  | P | D |                   Task                     |\n" + sep)
+            print(dev + "| N  |    Date    | Time  | P | D |                   Task                     |\n" + dev)
             for (x in 0 until taskList.size) {
                 val (date, time, priority) = taskList[x][0].split(' ').map { it }
+                val taskLines = taskList[x][1].split("\n")
                 println("| " + (x+1).toString().padEnd(3) + "| " + date + " | " + time + " | " +
-                color(priority) + " | " + color(deadline(date)) + " | " ) // without a newline character, because we must continue this
-//                println((x+1).toString().padEnd(3) + taskList[x][0] + " " + deadline(taskList[x][0].substringBefore(' ')))
-                for (y in 1 until taskList[x][1].length / 44) { // each line for 44 symbols
-                    println(taskList[x][2])
+                color(priority) + " | " + color(deadline(date)) + " |" + taskLines[0].padEnd(44) + "|")
+                for (y in 1 until taskLines.size-1) { // each line for 44 symbols
+                    println("|    |            |       |   |   |" + taskLines[y].padEnd(44) + "|")
                 }
-//                println()
+                print(dev)
             }
         } else println("No tasks have been input")
     }
