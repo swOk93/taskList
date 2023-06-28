@@ -1,8 +1,10 @@
 package tasklist
 import kotlinx.datetime.*
+import com.squareup.moshi.*
+import java.io.File
 
 object TaskList {
-    private val taskList = mutableListOf<MutableList<String>>()
+    var taskList = mutableListOf<MutableList<String>>()
     fun add() {
         val task = mutableListOf<String>()
         val priority = priority()
@@ -18,7 +20,7 @@ object TaskList {
                 if (str.isEmpty()) println("The task is blank").also { return str }
                 else return str
             } else if (it.length <= 44) {
-                str = it + "\n"
+                str += it + "\n"
             } else {
                 var x = 0
                 for (y in 44 until it.length step 44) {
@@ -146,10 +148,20 @@ object TaskList {
         }
         println("The task is changed")
     }
+    val jsonFile = File("tasklist.json")
+    fun load() {
+        if (jsonFile.exists()) {
+            TODO("Not yet implemented")
+        }
+    }
+    fun save() {
+        TODO("Not yet implemented")
+    }
 
 }
 
 fun main() {
+    TaskList.load()
     while (true) {
         println("Input an action (add, print, edit, delete, end):")
         when (readln().lowercase()) {
@@ -161,4 +173,5 @@ fun main() {
             else -> println("The input action is invalid")
         }
     }
+    TaskList.save()
 }
