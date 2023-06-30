@@ -1,6 +1,7 @@
 package tasklist
 import kotlinx.datetime.*
 import com.squareup.moshi.*
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import java.io.File
 
 object TaskList {
@@ -148,20 +149,30 @@ object TaskList {
         }
         println("The task is changed")
     }
-    val jsonFile = File("tasklist.json")
+}
+
+object SaveLoad {
+    class Array2D(private val data: MutableList<MutableList<String>>) {
+        operator fun component1() = data
+    }
+    private val jsonFile = File("tasklist.json")
+    private val moshi = Moshi.Builder()
+        .add(KotlinJsonAdapterFactory())
+        .build()
+    private val listAdapter = moshi.adapter(Array2D::class.java)
+    private val list = Array2D(TaskList.taskList)
+    private val json = listAdapter.toJson(list)
     fun load() {
-        if (jsonFile.exists()) {
-            TODO("Not yet implemented")
+        if (jsonFile.exists()) { // just get back 2Dlist from json file. I found only this way to do it.
+            TaskList.taskList = listAdapter.fromJson(jsonFile.readText())?.component1() as MutableList<MutableList<String>>
         }
     }
     fun save() {
-        TODO("Not yet implemented")
+        jsonFile.writeText(json) // write the data to file "tasklist.json"
     }
-
 }
-
 fun main() {
-    TaskList.load()
+    SaveLoad.load()
     while (true) {
         println("Input an action (add, print, edit, delete, end):")
         when (readln().lowercase()) {
@@ -169,9 +180,8 @@ fun main() {
             "print" -> TaskList.printTaskList()
             "delete" -> TaskList.change("delete")
             "edit" -> TaskList.change("edit")
-            "end" -> print("Tasklist exiting!").also { return }
+            "end" -> print("Tasklist exiting!").also { SaveLoad.save().also { return } }
             else -> println("The input action is invalid")
         }
     }
-    TaskList.save()
 }
