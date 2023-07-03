@@ -151,28 +151,29 @@ object TaskList {
     }
 }
 
+class Array2D(val data: MutableList<MutableList<String>>) {
+    operator fun component1() = data
+}
 object SaveLoad {
-    class Array2D(private val data: MutableList<MutableList<String>>) {
-        operator fun component1() = data
-    }
-    private val jsonFile = File("tasklist.json")
-    private val moshi = Moshi.Builder()
+    val jsonFile = File("tasklist.json")
+    val moshi = Moshi.Builder()
         .add(KotlinJsonAdapterFactory())
         .build()
-    private val listAdapter = moshi.adapter(Array2D::class.java)
-    private val list = Array2D(TaskList.taskList)
-    private val json = listAdapter.toJson(list)
-    fun load() {
-        if (jsonFile.exists()) { // just get back 2Dlist from json file. I found only this way to do it.
-            TaskList.taskList = listAdapter.fromJson(jsonFile.readText())?.component1() as MutableList<MutableList<String>>
-        }
-    }
-    fun save() {
-        jsonFile.writeText(json) // write the data to file "tasklist.json"
+    val type = Types.newParameterizedType(MutableList::class.java, Types.newParameterizedType(MutableList::class.java, String::class.java))
+    val adapter = moshi.adapter<MutableList<MutableList<String>>>(type)
+    val json = adapter.toJson(TaskList.taskList)
+}
+fun load() {
+    if (SaveLoad.jsonFile.exists()) { // just get back 2Dlist from json file. I found only this way to do it.
+        TaskList.taskList = SaveLoad.adapter.fromJson(SaveLoad.jsonFile.readText())!!
     }
 }
+fun save() {
+    val json = SaveLoad.adapter.toJson(TaskList.taskList)
+    SaveLoad.jsonFile.writeText(json) // write the data to file "tasklist.json"
+}
 fun main() {
-    SaveLoad.load()
+    load()
     while (true) {
         println("Input an action (add, print, edit, delete, end):")
         when (readln().lowercase()) {
@@ -180,7 +181,7 @@ fun main() {
             "print" -> TaskList.printTaskList()
             "delete" -> TaskList.change("delete")
             "edit" -> TaskList.change("edit")
-            "end" -> print("Tasklist exiting!").also { SaveLoad.save().also { return } }
+            "end" -> println("Tasklist exiting!").also { save().also { return } }
             else -> println("The input action is invalid")
         }
     }
