@@ -6,14 +6,16 @@ import java.io.File
 
 object TaskList {
     var taskList = mutableListOf<MutableList<String>>()
-    fun add() {
-        val task = mutableListOf<String>()
+    
+    fun add() {                               // Collects task details (date, time, priority, description) 
+        val task = mutableListOf<String>()    // and adds a new task to taskList
         val priority = priority()
         task.add("${date()} ${time()} $priority")
         task.add(newTask())
         taskList.add(task)
     }
-    private fun newTask(): String {
+    
+    private fun newTask(): String { // Collects a multi-line task description from the user
         var str = ""
         println("Input a new task (enter a blank line to end):")
         while (true) {
@@ -33,7 +35,7 @@ object TaskList {
             }
         }
     }
-    private fun priority(): String {
+    private fun priority(): String { // Gets valid task priority (C, H, N, L) from the user
         var str = ""
         while (str.isEmpty()) {
             println("Input the task priority (C, H, N, L):")
@@ -41,7 +43,7 @@ object TaskList {
         }
         return str
     }
-    private fun date(): String {
+    private fun date(): String { // Gets a valid date (YYYY-MM-DD) from the user 
         var list = listOf<Int>()
         while (list.size != 3) {
             println("Input the date (yyyy-mm-dd):")
@@ -55,7 +57,7 @@ object TaskList {
         }
         return "${list[0]}-${format(list[1])}-${format(list[2])}"
     }
-    private fun time(): String {
+    private fun time(): String { // Gets a valid time (HH:MM) from the user 
         var list = listOf<Int>()
         while (list.size != 2) {
             println("Input the time (hh:mm):")
@@ -69,13 +71,15 @@ object TaskList {
         }
         return "${format(list[0])}:${format(list[1])}"
     }
-    private fun format(n: Int): String {
+    
+    private fun format(n: Int): String { // Ensures two-digit formatting for date/time components (e.g., 09 instead of 9)
         var str = n.toString()
         if (str.length < 2) str = "0$str"
         return str
     }
+    // Validates date/time components using the kotlinx.datetime library
     private fun checkDateTime(years: Int = 2000, months: Int = 1, days: Int = 1, hours: Int = 0, minutes: Int = 0): Boolean {
-        return try {
+        return try {  
             LocalDateTime(years, months, days, hours, minutes)
             true
         }
@@ -84,7 +88,7 @@ object TaskList {
         }
     }
 
-    fun printTaskList() {
+    fun printTaskList() { // Nicely formats and prints all tasks in the taskList
         val dev = "+----+------------+-------+---+---+--------------------------------------------+\n" // dividing line
 
         if (taskList.isNotEmpty()) {
@@ -101,7 +105,8 @@ object TaskList {
             }
         } else println("No tasks have been input")
     }
-    private fun color(color: String): String {
+    
+    private fun color(color: String): String { // Adds color codes for priority and due date tags (visual clarity)
         return when (color) {
             "C", "O" -> "\u001B[101m \u001B[0m" // if priority = "C" or due tag = "O"
             "H", "T" -> "\u001B[103m \u001B[0m" // if priority = "H" or due tag = "T"
@@ -110,15 +115,24 @@ object TaskList {
             else -> "error"
         }
     }
-
-    private fun deadline(s: String): String {
-        val date = s.split('-').map { it.toInt() } // get year, month and day
-        val currentDate = Clock.System.now().toLocalDateTime(TimeZone.of("UTC+0")).date
-        val numberOfDays = currentDate.daysUntil(LocalDate(date[0], date[1], date[2])) // get the number of days until our date
-        return if (numberOfDays > 0) "I" else if (numberOfDays < 0) "O" else "T"
+    // Calculates a due date tag ('I' - In due, 'O' - Overdue, 'T' - Today)
+    fun deadline(s: String): String {
+        val date = LocalDate.parse(s)    
+        val today = LocalDate.now()    
+        return when {        
+            date.isBefore(today) -> "O"        
+            date.isEqual(today) -> "T"        
+            else -> "I"    
+        }
     }
+    // private fun deadline(s: String): String { // Calculates a due date tag ('I' - In due, 'O' - Overdue, 'T' - Today)
+    //     val date = s.split('-').map { it.toInt() } // get year, month and day
+    //     val currentDate = Clock.System.now().toLocalDateTime(TimeZone.of("UTC+0")).date
+    //     val numberOfDays = currentDate.daysUntil(LocalDate(date[0], date[1], date[2])) // get the number of days until our date
+    //     return if (numberOfDays > 0) "I" else if (numberOfDays < 0) "O" else "T"
+    // }
 
-    fun change(type: String) {
+    fun change(type: String) { // Allows deleting or editing a task based on the 'type' parameter
         printTaskList()
         if (taskList.isNotEmpty()) {
             var loop = true
@@ -134,7 +148,7 @@ object TaskList {
         }
     }
 
-    private fun edit(num: Int) {
+    private fun edit(num: Int) { // Handles editing specific fields of a task (priority, date, time, task) 
         var loop = true
         while (loop) {
             println("Input a field to edit (priority, date, time, task):")
@@ -154,7 +168,7 @@ object TaskList {
 class Array2D(val data: MutableList<MutableList<String>>) {
     operator fun component1() = data
 }
-object SaveLoad {
+object SaveLoad { // Creates initial JSON representation
     val jsonFile = File("tasklist.json")
     val moshi = Moshi.Builder()
         .add(KotlinJsonAdapterFactory())
@@ -163,25 +177,25 @@ object SaveLoad {
     val adapter = moshi.adapter<MutableList<MutableList<String>>>(type)
     val json = adapter.toJson(TaskList.taskList)
 }
-fun load() {
+fun load() { // Loads task list from "tasklist.json" if the file exists
     if (SaveLoad.jsonFile.exists()) { // just get back 2Dlist from json file. I found only this way to do it.
         TaskList.taskList = SaveLoad.adapter.fromJson(SaveLoad.jsonFile.readText())!!
     }
 }
-fun save() {
+fun save() { // Saves the current task list to "tasklist.json"
     val json = SaveLoad.adapter.toJson(TaskList.taskList)
     SaveLoad.jsonFile.writeText(json) // write the data to file "tasklist.json"
 }
 fun main() {
-    load()
-    while (true) {
+    load() // Load saved tasks on program start
+    while (true) { // Prompts the user for an action, executes the relevant task management functions
         println("Input an action (add, print, edit, delete, end):")
         when (readln().lowercase()) {
             "add" -> TaskList.add()
             "print" -> TaskList.printTaskList()
             "delete" -> TaskList.change("delete")
             "edit" -> TaskList.change("edit")
-            "end" -> println("Tasklist exiting!").also { save().also { return } }
+            "end" -> println("Tasklist exiting!").also { save().also { return } } // Ends the program and saves data when the user enters "end"
             else -> println("The input action is invalid")
         }
     }
